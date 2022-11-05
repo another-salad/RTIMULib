@@ -23,6 +23,7 @@
 #//  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from distutils.core import setup, Extension
+from pathlib import Path
 import os.path
 
 RTIMU_sources = [
@@ -52,12 +53,20 @@ RTIMU_sources = [
     "IMUDrivers/RTHumidityHTS221.cpp",
     "IMUDrivers/RTHumidityHTU21D.cpp",
    ]
-RTIMU_sourcedir = "../../RTIMULib"
+
+# Avoiding relative path pain.
+setup_file_path = Path(__file__)
+py_source_files = [
+    'PyRTIMU.cpp', 'PyRTIMU_Settings.cpp', 'PyRTIMU_RTIMU.cpp',
+    'PyRTIMU_RTPressure.cpp', 'PyRTIMU_RTHumidity.cpp'
+]
+py_source_dir = setup_file_path.parent
+RTIMU_sourcedir = os.path.join(setup_file_path.parents[2], "RTIMULib")
+all_sources = [os.path.join(py_source_dir, sr) for sr in py_source_files] + \
+    [os.path.join(RTIMU_sourcedir, sr) for sr in RTIMU_sources]
 
 mod = Extension('RTIMU',
-                sources = ['PyRTIMU.cpp', 'PyRTIMU_Settings.cpp', 'PyRTIMU_RTIMU.cpp', 
-                'PyRTIMU_RTPressure.cpp', 'PyRTIMU_RTHumidity.cpp'] +
-                [ os.path.join(RTIMU_sourcedir, sr) for sr in RTIMU_sources],
+                sources = all_sources,
                 include_dirs = [RTIMU_sourcedir],
                 extra_compile_args = ['-std=c++0x'],
                 define_macros = [("HAL_QUIET", None)]
